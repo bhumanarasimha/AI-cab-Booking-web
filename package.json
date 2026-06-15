@@ -1,0 +1,15 @@
+{
+  "name": "smartride-ai",
+  "version": "1.0.0",
+  "description": "SmartRide AI - Intelligent Urban Mobility Platform",
+  "private": true,
+  "scripts": {
+    "install:all": "npm.cmd install --prefix backend && npm.cmd install --prefix frontend",
+    "dev": "concurrently \"npm.cmd run dev --prefix backend\" \"npm.cmd run dev --prefix frontend\"",
+    "start:backend": "npm.cmd run start --prefix backend",
+    "start:frontend": "npm.cmd run dev --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

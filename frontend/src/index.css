@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #0B0F1A;
+  --bg-space: #0F172A;
+  --card-bg: rgba(15, 23, 42, 0.55);
+  --border-white: rgba(255, 255, 255, 0.07);
+  --neon-purple: #a855f7;
+  --neon-cyan: #06b6d4;
+  --neon-amber: #f59e0b;
+  --neon-rose: #f43f5e;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #f4f4f5;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism Styles */
+.glass-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-white);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Pulsing neon glows */
+.glow-card-purple {
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.glow-card-cyan {
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+}
+
+.glow-card-green {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+/* Custom gradients styling */
+.text-gradient-purple-cyan {
+  background: linear-gradient(90deg, #c084fc 0%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-purple-gradient {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+}
+
+.bg-cyan-gradient {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+}
+
+.bg-amber-gradient {
+  background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
+}
+
+.bg-rose-gradient {
+  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+}
+
+/* Custom transitions and scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(11, 15, 26, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* MapLibre customized overrides for dark theme integration */
+.maplibregl-ctrl-attrib {
+  display: none !important;
+}
+
+.custom-map-marker {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.marker-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+.neon-route-path {
+  filter: drop-shadow(0 0 4px #06b6d4);
+}
+
+.glow-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.glow-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: all 0.6s ease;
+}
+
+.glow-btn:hover::after {
+  left: 100%;
+}
