@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { executeEMMDE } from './src/ai/emmde.js';
 import { calculateRouteCompatibility } from './src/ai/rcma.js';
+import { dbInit, getUserByEmail, createUser, updateUserProfile } from './db.js';
+
 
 dotenv.config();
 
@@ -95,39 +97,100 @@ const State = {
     ]
 };
 
-// --- AUTHENTICATION ROUTES ---
-app.post('/api/auth/login', (req, res) => {
-    const { email } = req.body;
-    if (email) {
-        State.user.email = email;
-        State.user.name = email.split('@')[0].toUpperCase();
-    }
-    res.json({ success: true, user: State.user });
-});
-
-app.post('/api/auth/signup', (req, res) => {
-    const { name, email, phone } = req.body;
-    State.user = {
-        ...State.user,
-        name,
-        email,
-        phone,
-        walletBalance: 500.00 // Welcome signup bonus
+// Helper to map DB row to State user structure
+function mapUserFromDB(dbUser) {
+    if (!dbUser) return null;
+    return {
+        name: dbUser.name,
+        email: dbUser.email,
+        phone: dbUser.phone,
+        gender: 'male',
+        isVerified: !!dbUser.is_verified,
+        preferences: {
+            cost: dbUser.pref_cost,
+            time: dbUser.pref_time,
+            comfort: dbUser.pref_comfort
+        },
+        walletBalance: dbUser.wallet_balance
     };
-    res.json({ success: true, user: State.user });
+}
+
+// --- AUTHENTICATION ROUTES ---
+app.post('/api/auth/login', async (req, res) => {
+    const { email } = req.body;
+    try {
+        if (!email) {
+            return res.status(400).json({ success: false, error: "Email is required." });
+        }
+        let dbUser = await getUserByEmail(email);
+        if (!dbUser) {
+            // Auto-create user if they don't exist (mock behavior parity)
+            const defaultName = email.split('@')[0].toUpperCase();
+            dbUser = await createUser(defaultName, email, '9876543210');
+        }
+        State.user = mapUserFromDB(dbUser);
+        res.json({ success: true, user: State.user });
+    } catch (err) {
+        console.error("Login endpoint error:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
-app.get('/api/auth/profile', (req, res) => {
+app.post('/api/auth/signup', async (req, res) => {
+    const { name, email, phone } = req.body;
+    try {
+        if (!email || !name || !phone) {
+            return res.status(400).json({ success: false, error: "Missing required details." });
+        }
+        let dbUser = await getUserByEmail(email);
+        if (!dbUser) {
+            dbUser = await createUser(name, email, phone);
+        } else {
+            // User already exists, update details
+            await updateUserProfile(email, name, null, null);
+            dbUser = await getUserByEmail(email);
+        }
+        State.user = mapUserFromDB(dbUser);
+        res.json({ success: true, user: State.user });
+    } catch (err) {
+        console.error("Signup endpoint error:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/auth/profile', async (req, res) => {
+    if (State.user && State.user.email) {
+        try {
+            const dbUser = await getUserByEmail(State.user.email);
+            if (dbUser) {
+                State.user = mapUserFromDB(dbUser);
+            }
+        } catch (err) {
+            console.error("Fetch profile error:", err);
+        }
+    }
     res.json(State.user);
 });
 
-app.post('/api/auth/profile/update', (req, res) => {
+app.post('/api/auth/profile/update', async (req, res) => {
     const { name, preferences, walletBalance } = req.body;
-    if (name) State.user.name = name;
-    if (preferences) State.user.preferences = { ...State.user.preferences, ...preferences };
-    if (walletBalance !== undefined) State.user.walletBalance = walletBalance;
-    res.json({ success: true, user: State.user });
+    if (State.user && State.user.email) {
+        try {
+            await updateUserProfile(State.user.email, name, preferences, walletBalance);
+            const dbUser = await getUserByEmail(State.user.email);
+            if (dbUser) {
+                State.user = mapUserFromDB(dbUser);
+            }
+            res.json({ success: true, user: State.user });
+        } catch (err) {
+            console.error("Profile update error:", err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    } else {
+        res.status(401).json({ success: false, error: "No active user session." });
+    }
 });
+
 
 // --- RIDE COMPARISON (EMMDE) ---
 app.post('/api/rides/compare', (req, res) => {
@@ -241,7 +304,18 @@ app.get('/api/admin/context', (req, res) => {
     res.json({ context: State.context, logs: State.systemLogs });
 });
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`[SmartRide AI Backend] Server running on port ${PORT}`);
-});
+// Initialize DB and Start Server
+dbInit()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`[SmartRide AI Backend] Server running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error("[SmartRide AI Backend] DB initialization failed:", err);
+        // Start server anyway
+        app.listen(PORT, () => {
+            console.log(`[SmartRide AI Backend] Server running on port ${PORT} (without persistent DB)`);
+        });
+    });
+

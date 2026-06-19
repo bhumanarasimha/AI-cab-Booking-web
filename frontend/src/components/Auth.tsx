@@ -42,6 +42,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
     try {
       // Trigger dynamic OTP prompt
       setOtpVisible(true);
+      setOtpCode('123456');
       setPendingUser({ name, email, phone });
     } catch (err) {
       setError('Signup failed.');
@@ -305,6 +306,14 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                   placeholder="123456"
                   className="w-full text-center tracking-[12px] font-mono bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 text-lg text-white focus:outline-none focus:border-purple-500 transition-all"
                 />
+              </div>
+
+              {/* Simulator Mode Information Banner */}
+              <div className="p-3 bg-purple-500/10 border border-purple-500/25 rounded-xl text-xxs text-zinc-300 text-center flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
+                <span>
+                  <strong>Simulator Sandbox Mode:</strong> Use code <code className="bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-mono font-bold">123456</code> to verify immediately.
+                </span>
               </div>
 
               <button
